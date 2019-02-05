@@ -15,7 +15,7 @@ export interface HttpResponseBase {
 export type HttpSuccessResponse<T> = HttpResponseBase & { result: T };
 
 //失败响应接口
-export type HttpErrorResponse<T> = HttpResponseBase & { reason: T };
+export type HttpErrorResponse = HttpResponseBase & { reason: string };
 
 //响应接口
-export type HttpResponse<T> = HttpSuccessResponse<T> | HttpErrorResponse<T>;
+export type HttpResponse<T> = HttpSuccessResponse<T> | HttpErrorResponse;

@@ -9,7 +9,7 @@ import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 import * as META from "@src/constants/meta.constant"
-import { HttpResponse } from "@src/interfaces/http.interface";
+import { HttpResponse, HttpSuccessResponse, HttpErrorResponse } from "@src/interfaces/http.interface";
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor {
@@ -24,15 +24,15 @@ export class TransformInterceptor<T> implements NestInterceptor {
             map((value: T) => {
                 let is_error: boolean = this.reflector.get<boolean>(META.HTTP_IS_ERROR, handler);
 
-                if(is_error) { //判断是否正确响应
+                if(is_error && typeof value === "string") { //判断是否正确响应
                     let code:HttpStatus = this.reflector.get<HttpStatus>(META.HTTP_ERROR_CODE, handler);
                     let message: string = this.reflector.get<string>(META.HTTP_ERROR_MESSAGE, handler);
-                    return { statusCode: code, message: message, reason: value }
+                    return <HttpErrorResponse>{ statusCode: code, message: message, reason: value };
                 }
                 else {
                     let code:HttpStatus = this.reflector.get<HttpStatus>(META.HTTP_SUCCESS_CODE, handler);
                     let message: string = this.reflector.get<string>(META.HTTP_SUCCESS_MESSAGE, handler);
-                    return { statusCode: code, message: message, result: value }
+                    return <HttpSuccessResponse<T>>{ statusCode: code, message: message, result: value };
                 }
             })
         );

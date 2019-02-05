@@ -3,14 +3,14 @@
  * @module app/module
  */
 
-import { Module } from '@nestjs/common';
-
-import { AppController } from './app.controller';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 
 import { DatabaseModule } from './core/database/database.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { HelperModule } from './core/helper/helper.module';
+import { AppController } from './app.controller';
+import { CorsMiddleware } from './middlewares/cors.middleware';
 
 @Module({
 	imports: [
@@ -25,4 +25,8 @@ import { HelperModule } from './core/helper/helper.module';
 	providers: [
 	]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(CorsMiddleware).forRoutes("*");
+	}
+}

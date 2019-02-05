@@ -19,6 +19,7 @@ export class AuthController {
         private ipService: IpService
     ) {}
 
+    //用户认证
     @Post("user")
     @HTTP.Success(HttpStatus.OK, "用户认证成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "用户认证失败")

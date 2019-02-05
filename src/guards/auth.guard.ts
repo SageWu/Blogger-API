@@ -12,12 +12,12 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
         return super.canActivate(context);
     }
 
-    handleRequest(error, auth_info, error_info) {        
+    handleRequest(error, auth_info, error_info) {
         if(auth_info && !error && !error_info) {    //检测通过
             return auth_info;
         }
-        else {  //失败
-            throw new UnauthorizedException(null, "未授权");
+        else {  //验证不通过或者解析失败
+            throw new UnauthorizedException(null, error && error.message || error_info);
         }
     }
 }

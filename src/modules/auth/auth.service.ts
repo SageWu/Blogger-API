@@ -39,8 +39,8 @@ export class AuthService {
         let user: User = await this.userRepo.findOne({ "account": account, "password": password });
         if(user) {
             let token: Token = {};
-            token.access_token = this.jwtService.sign({ data: APP_CONFIG.AUTH.data, owner: user.account });
-            token.expires_in = APP_CONFIG.AUTH.expiresIn;
+            token.accessToken = this.jwtService.sign({ data: APP_CONFIG.AUTH.data, owner: user.id });
+            token.expiresIn = APP_CONFIG.AUTH.expiresIn;
 
             return Promise.resolve(token);
         }

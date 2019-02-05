@@ -3,7 +3,7 @@
  * @module modules/auth/jwt-strategy
  */
 
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import * as lodash from "lodash";
@@ -19,12 +19,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    validate(payload: any) {
+    validate(payload: any) {    //成功解析token后
         if(lodash.isEqual(payload.data, APP_CONFIG.AUTH.data)) {
             return payload.owner;
         }
-        else {
-            return false;
+        else {            
+            throw new UnauthorizedException({ name: "JsonWebTokenError", message: "invalid data" });
         }
     }
 }

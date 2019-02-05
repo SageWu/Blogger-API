@@ -17,11 +17,32 @@ export class UserService {
         private authService: AuthService
     ) {}
 
-    //创建用户
-    public async create(user: User): Promise<User> {
-        let user_find: User = await this.userRepo.findOne({ account: user.account });   //检验用户是否已存在
+    //检查用户是否存在
+    public async isExist(account: string): Promise<boolean> {
+        let user_find: User = await this.userRepo.findOne({ account: account });
 
         if(user_find) {
+            return Promise.resolve(true);
+        }
+        else {
+            return Promise.resolve(false);
+        }
+    }
+
+    //获取用户
+    public get(user_id: string): Promise<User> {
+        return this.userRepo.findOne(user_id).catch(
+            (reason) => {
+                return Promise.reject("用户不存在");
+            }
+        );
+    }
+
+    //创建用户
+    public async create(user: User): Promise<User> {
+        let is_exist: boolean = await this.isExist(user.account);   //检验用户是否已存在
+
+        if(is_exist) {
             return Promise.reject("用户已存在");
         }
 
