@@ -8,13 +8,13 @@ import { Controller, Post, HttpStatus, Body, ReflectMetadata, Get, UseGuards, Re
 import * as META from "@src/constants/meta.constant"
 import { HTTP } from "@src/decorators/http.decorator";
 import { JwtAuthGuard } from "@src/guards/auth.guard";
-import { User } from "./user.entity";
+import { User } from "./user.model";
 import { UserService } from "./user.service";
 
 @Controller("user")
 export class UserController {
     constructor(
-        private userService: UserService
+        private userService: UserService,
     ) {}
 
     //检查用户是否已经存在

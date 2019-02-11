@@ -11,13 +11,14 @@ interface DecoratorOption {
     successCode?: HttpStatus,
     successMessage?: string,
     errorCode?: HttpStatus,
-    errorMessage?: string
+    errorMessage?: string,
+    paginate?: boolean
 }
 
 //构建装饰器
 const buildDecorator = (option: DecoratorOption): MethodDecorator => {
-    const { successCode, successMessage, errorCode, errorMessage } = option;
-    return (_, __, descriptor: PropertyDescriptor) => {
+    const { successCode, successMessage, errorCode, errorMessage, paginate } = option;
+    return (_, __, descriptor: PropertyDescriptor): PropertyDescriptor => {
         if(successCode) {
             ReflectMetadata(META.HTTP_SUCCESS_CODE, successCode)(descriptor.value);
         }
@@ -29,6 +30,9 @@ const buildDecorator = (option: DecoratorOption): MethodDecorator => {
         }
         if(errorMessage) {
             ReflectMetadata(META.HTTP_ERROR_MESSAGE, errorMessage)(descriptor.value);
+        }
+        if(paginate) {
+            ReflectMetadata(META.HTTP_RESPONSE_PAGINATE, paginate)(descriptor.value);
         }
 
         return descriptor;
@@ -45,4 +49,8 @@ export function Success(code: HttpStatus, messag: string): MethodDecorator {
     return buildDecorator({ successCode: code, successMessage: messag });
 }
 
-export const HTTP = { Success, Error };
+export function Paginate(): MethodDecorator {
+    return buildDecorator({paginate: true});
+}
+
+export const HTTP = { Success, Error, Paginate };

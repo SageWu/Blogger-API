@@ -9,7 +9,7 @@ import * as META from "@src/constants/meta.constant"
 import { IpService, IpInfo } from "@src/core/helper/ip.service";
 import { HTTP } from "@src/decorators/http.decorator";
 import { JwtAuthGuard } from "@src/guards/auth.guard";
-import { AuthBody, Token, AuthQuery } from "./auth.interface";
+import { AuthBody, Token } from "./auth.interface";
 import { AuthService } from "./auth.service";
 
 @Controller("auth")
@@ -23,7 +23,7 @@ export class AuthController {
     @Post("user")
     @HTTP.Success(HttpStatus.OK, "用户认证成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "用户认证失败")
-    public userAuth(@Query() query: AuthQuery, @Body() body: AuthBody): Promise<Token> {
+    public userAuth(@Query() query, @Body() body: AuthBody): Promise<Token> {
         return this.authService.userAuth(body.account, body.password).then( //认证成功
             async (token: Token) => {
                 if(query.ip) {  //记录登录ip

@@ -9,10 +9,6 @@ export interface AuthBody {
     password: string;
 }
 
-export interface AuthQuery {
-    ip: string
-}
-
 export interface Token {
     accessToken?: string;
     expiresIn?: number;

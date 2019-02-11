@@ -12,4 +12,6 @@ export const HTTP_ERROR_CODE: string = "__customHttpErrorCode__";
 export const HTTP_ERROR_MESSAGE: string = "__customHttpErrorMessage__";
 export const HTTP_MESSAGE: string = "__customHttpMessage__";
 
+export const HTTP_RESPONSE_PAGINATE: string = "__customHttpResponsePaginate__";
+
 export const HTTP_CACHE_TTL_META: string = "__customHttpCacheTTL__";

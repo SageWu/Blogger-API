@@ -4,15 +4,15 @@
  */
 
 import { Module } from "@nestjs/common";
-import { TypeOrmModule } from "@nestjs/typeorm";
+import { TypegooseModule } from "nestjs-typegoose";
 
 import { ArticleController } from "./article.contoller";
 import { ArticleService } from "./article.service";
-import { Article } from "./article.entity";
+import { Article } from "./article.model";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Article])
+        TypegooseModule.forFeature(Article)
     ],
     controllers: [
         ArticleController

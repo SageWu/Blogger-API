@@ -21,7 +21,7 @@ import { TagModule } from './modules/tag/tag.module';
 		AuthModule,
 		UserModule,
 		TagModule,
-		ArticleModule
+		// ArticleModule
 	],
 	controllers: [
 		AppController

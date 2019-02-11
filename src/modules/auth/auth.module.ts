@@ -4,20 +4,20 @@
  */
 
 import { Module, Global } from "@nestjs/common";
-import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
+import { TypegooseModule } from "nestjs-typegoose";
 
 import * as APP_CONFIG from "@src/app.config"
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { User } from "../user/user.entity";
+import { User } from "../user/user.model";
 import { JwtStrategy } from "./jwt.strategy";
 
 @Global()
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User]),   //注册Repository
+        TypegooseModule.forFeature(User),
         PassportModule.register({
             defaultStrategy: "jwt"
         }),

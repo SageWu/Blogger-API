@@ -4,21 +4,20 @@
  */
 
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
 import { JwtService } from "@nestjs/jwt";
-import { Repository } from "typeorm";
 import { createHash } from "crypto";
 import { Base64 } from "js-base64";
+import { InjectModel } from "nestjs-typegoose";
+import { ModelType } from "typegoose";
 
 import * as APP_CONFIG from "@src/app.config";
 import { Token } from "./auth.interface";
-import { User } from "../user/user.entity";
-
+import { User } from "../user/user.model";
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(User) private userRepo: Repository<User>,
+        @InjectModel(User) private userModel: ModelType<User>,
         private jwtService: JwtService
     ) {}
     
@@ -36,10 +35,10 @@ export class AuthService {
     public async userAuth(account: string, password: string): Promise<Token> {        
         password = this.encodeMd5(this.decodeBase64(password));
 
-        let user: User = await this.userRepo.findOne({ "account": account, "password": password });
+        let user: User = await this.userModel.findOne({ "account": account, "password": password }).exec();
         if(user) {
             let token: Token = {};
-            token.accessToken = this.jwtService.sign({ data: APP_CONFIG.AUTH.data, owner: user.id });
+            token.accessToken = this.jwtService.sign({ data: APP_CONFIG.AUTH.data, owner: user["_id"] });
             token.expiresIn = APP_CONFIG.AUTH.expiresIn;
 
             return Promise.resolve(token);
