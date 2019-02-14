@@ -18,6 +18,11 @@ export class Tag extends Typegoose {
     description?: string;    //描述
 
     @prop({
+        default: 0
+    })
+    count?: number;  //引用该标签的文章数目
+
+    @prop({
         default: Date.now
     })
     create_at?: Date;    //创建时间

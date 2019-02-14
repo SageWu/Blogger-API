@@ -3,13 +3,15 @@
  * @module modules/tag/controller
  */
 
-import { Controller, Get, Post, HttpStatus, UseGuards, Body, ReflectMetadata, Req, Query } from "@nestjs/common";
+import { Controller, Get, Post, HttpStatus, UseGuards, Body, ReflectMetadata, Req, Query, Put } from "@nestjs/common";
 import * as META from "@src/constants/meta.constant";
 
 import { HTTP } from "@src/decorators/http.decorator";
 import { JwtAuthGuard } from "@src/guards/auth.guard";
 import { Tag } from "./tag.model";
 import { TagService } from "./tag.service";
+import { PaginationData } from "@src/interfaces/http.interface";
+import { Types } from "mongoose";
 
 @Controller("tag")
 export class TagController {
@@ -18,23 +20,39 @@ export class TagController {
     ) {}
 
     @Get()
-    @UseGuards(JwtAuthGuard)
+    //@UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "获取标签成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "获取标签失败")
-    public getTags(@Query() query): Promise<Tag[]> {
+    public getTags(@Req() request, @Query() query): Promise<PaginationData<Tag[]>> {
+        query.user_id = "5c6180ea67e9335c15af5118";//request.user;
+
         return this.tagService.get(query);
     }
 
     @Post()
-    @UseGuards(JwtAuthGuard)
+    //@UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "添加标签成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "添加标签失败")
     public createTag(@Req() request, @Body() tag: Tag): Promise<Tag> {
-        tag.user_id = request.user;
+        tag.user_id = Types.ObjectId("5c6180ea67e9335c15af5118");//request.user;
 
         return this.tagService.create(tag).catch(
             (reason) => {
                 ReflectMetadata(META.HTTP_IS_ERROR, true)(this.createTag);  //标记失败
+
+                return reason;
+            }
+        );
+    }
+
+    @Put()
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "修改标签成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "修改标签失败")
+    public updateTag(@Body() tag: Tag): Promise<Tag> {
+        return this.tagService.update(tag).catch(
+            (reason) => {
+                ReflectMetadata(META.HTTP_IS_ERROR, true)(this.updateTag);  //标记失败
 
                 return reason;
             }

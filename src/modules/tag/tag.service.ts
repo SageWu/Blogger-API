@@ -8,6 +8,7 @@ import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
 
 import { Tag } from "./tag.model";
+import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
 
 @Injectable()
 export class TagService {
@@ -28,10 +29,23 @@ export class TagService {
     }
 
     //获取标签
-    public get(option): Promise<Tag[]> {
-        let offset: number = (option.page - 1) * option.page_size;
+    public async get(option: HttpRequestOption): Promise<PaginationData<Tag[]>> {
+        let page: number = Number.parseInt(option.page);
+        let page_size: number = Number.parseInt(option.page_size);
+        let offset: number = (page - 1) * page_size;
+        let condition: any = {
+            user_id: option.user_id
+        };
 
-        return this.tagModel.find({ user_id: option.user_id }).skip(offset).limit(option.page_size).exec();
+        if(option.keyword && option.keyword !== "") {
+            condition.name = RegExp(option.keyword);
+        }
+
+        let result: PaginationData<Tag[]> = {};
+        result.total = await this.tagModel.estimatedDocumentCount().exec();
+        result.data = await this.tagModel.find(condition).skip(offset).limit(page_size).exec();
+
+        return Promise.resolve(result);
     }
 
     //创建标签
@@ -41,10 +55,15 @@ export class TagService {
             return Promise.reject("标签已存在");
         }
 
-        return this.tagModel.create(tag).catch(
+        return this.tagModel.create(tag).catch( //创建失败抛异常
             (reason) => {
                 return Promise.reject(reason["message"]);
             }
         );
+    }
+
+    //修改标签
+    public update(tag: Tag): Promise<Tag> {
+        return this.tagModel.updateOne({_id: tag["_id"]}, tag).exec();
     }
 }

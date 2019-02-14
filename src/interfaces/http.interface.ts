@@ -19,3 +19,14 @@ export type HttpErrorResponse = HttpResponseBase & { reason: string };
 
 //响应接口
 export type HttpResponse<T> = HttpSuccessResponse<T> | HttpErrorResponse;
+
+//分页数据
+export interface PaginationData<T> {
+    data?: T;
+    total?: number;
+}
+
+//get请求选项接口
+export interface HttpRequestOption {
+    [key: string]: string;
+}
