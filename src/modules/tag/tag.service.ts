@@ -6,6 +6,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
+import { Types } from "mongoose";
 
 import { Tag } from "./tag.model";
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
@@ -55,7 +56,7 @@ export class TagService {
             return Promise.reject("标签已存在");
         }
 
-        return this.tagModel.create(tag).catch( //创建失败抛异常
+        return this.tagModel.create(tag).catch( //因数据不符合要求创建失败抛异常
             (reason) => {
                 return Promise.reject(reason["message"]);
             }
@@ -64,6 +65,37 @@ export class TagService {
 
     //修改标签
     public update(tag: Tag): Promise<Tag> {
-        return this.tagModel.updateOne({_id: tag["_id"]}, tag).exec();
+        return this.tagModel.updateOne({_id: tag["_id"]}, tag).exec().catch(
+            (reason) => {
+                return Promise.reject(reason["message"]); 
+            }
+        );
+    }
+
+    //删除标签
+    public delete(tag_id: Types.ObjectId): Promise<boolean> {
+        return this.tagModel.deleteOne({ _id: tag_id }).exec().then(
+            (value) => {
+                if(value.n === 1) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        );
+    }
+
+    public deleteMany(tag_ids: Types.ObjectId[]): Promise<boolean> {
+        return this.tagModel.deleteMany({ _id: { $in: tag_ids } }).exec().then(
+            (value) => {
+                if(value.n === tag_ids.length) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        )
     }
 }

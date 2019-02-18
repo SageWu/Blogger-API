@@ -3,7 +3,7 @@
  * @module modules/tag/controller
  */
 
-import { Controller, Get, Post, HttpStatus, UseGuards, Body, ReflectMetadata, Req, Query, Put } from "@nestjs/common";
+import { Controller, Get, Post, HttpStatus, UseGuards, Body, ReflectMetadata, Req, Query, Put, Delete, Param } from "@nestjs/common";
 import * as META from "@src/constants/meta.constant";
 
 import { HTTP } from "@src/decorators/http.decorator";
@@ -57,5 +57,21 @@ export class TagController {
                 return reason;
             }
         );
+    }
+
+    @Delete("/:id")
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "删除标签成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "删除标签失败")
+    public deleteTag(@Param() param): Promise<boolean> {
+        return this.tagService.delete(param.id);
+    }
+
+    @Delete()
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "删除标签成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "删除标签失败")
+    public deleteTags(@Body() body): Promise<boolean> {
+        return this.tagService.deleteMany(body);
     }
 }
