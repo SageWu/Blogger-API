@@ -65,7 +65,7 @@ export class TagService {
 
     //修改标签
     public update(tag: Tag): Promise<Tag> {
-        return this.tagModel.updateOne({_id: tag["_id"]}, tag).exec().catch(
+        return this.tagModel.updateOne({_id: tag._id}, tag).exec().catch(
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }
@@ -96,6 +96,6 @@ export class TagService {
                     return false;
                 }
             }
-        )
+        );
     }
 }

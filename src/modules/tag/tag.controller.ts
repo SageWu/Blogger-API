@@ -25,6 +25,7 @@ export class TagController {
     @HTTP.Error(HttpStatus.BAD_REQUEST, "获取标签失败")
     public getTags(@Req() request, @Query() query): Promise<PaginationData<Tag[]>> {
         query.user_id = "5c6180ea67e9335c15af5118";//request.user;
+        //todo 检查查询参数
 
         return this.tagService.get(query);
     }

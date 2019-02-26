@@ -9,6 +9,8 @@ import { Types } from "mongoose";
 import { User } from "../user/user.model";
 
 export class Tag extends Typegoose {
+    _id: Types.ObjectId;
+
     @prop({
         required: true
     })
