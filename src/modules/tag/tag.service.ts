@@ -86,6 +86,7 @@ export class TagService {
         );
     }
 
+    //批量删除
     public deleteMany(tag_ids: Types.ObjectId[]): Promise<boolean> {
         return this.tagModel.deleteMany({ _id: { $in: tag_ids } }).exec().then(
             (value) => {

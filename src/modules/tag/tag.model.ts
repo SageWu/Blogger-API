@@ -14,25 +14,25 @@ export class Tag extends Typegoose {
     @prop({
         required: true
     })
-    name: string;   //名称
+    name: string;               //名称
 
     @prop()
-    description?: string;    //描述
+    description?: string;       //描述
 
     @prop({
         default: 0
     })
-    count?: number;  //引用该标签的文章数目
+    count?: number;             //引用该标签的文章数目
 
     @prop({
         default: Date.now
     })
-    create_at?: Date;    //创建时间
+    create_at?: Date;           //创建时间
 
     @prop({
         default: Date.now
     })
-    update_at?: Date;    //修改时间
+    update_at?: Date;           //修改时间
 
     @prop({
         required: true,

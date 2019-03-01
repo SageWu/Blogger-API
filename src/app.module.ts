@@ -13,6 +13,7 @@ import { AppController } from './app.controller';
 import { CorsMiddleware } from './middlewares/cors.middleware';
 import { ArticleModule } from './modules/article/article.module';
 import { TagModule } from './modules/tag/tag.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
 	imports: [
@@ -21,6 +22,7 @@ import { TagModule } from './modules/tag/tag.module';
 		AuthModule,
 		UserModule,
 		TagModule,
+		CategoryModule,
 		// ArticleModule
 	],
 	controllers: [

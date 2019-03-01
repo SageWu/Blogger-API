@@ -9,29 +9,36 @@ import { Types } from "mongoose";
 import { User } from "../user/user.model";
 
 export class Category extends Typegoose {
+    _id?: Types.ObjectId;
+
     @prop({
         required: true
     })
-    name: string;   //名称
+    name: string;               //名称
 
     @prop()
-    description?: string;   //描述
+    description?: string;       //描述
+
+    @prop({
+        default: 0
+    })
+    count?: number;             //文章引用数
 
     @prop({
         default: Date.now
     })
-    create_at?: Date;    //创建时间
+    create_at?: Date;           //创建时间
 
     @prop({
         default: Date.now
     })
-    update_at?: Date;    //更新时间
+    update_at?: Date;           //更新时间
 
     @prop({
         ref: Category,
         default: null
     })
-    parent_id?: Types.ObjectId;  //父类别
+    parent_id?: Types.ObjectId; //父类别
 
     @prop({
         required: true,

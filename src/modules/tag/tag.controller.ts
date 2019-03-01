@@ -4,14 +4,14 @@
  */
 
 import { Controller, Get, Post, HttpStatus, UseGuards, Body, ReflectMetadata, Req, Query, Put, Delete, Param } from "@nestjs/common";
+import { Types } from "mongoose";
 import * as META from "@src/constants/meta.constant";
 
 import { HTTP } from "@src/decorators/http.decorator";
 import { JwtAuthGuard } from "@src/guards/auth.guard";
+import { PaginationData } from "@src/interfaces/http.interface";
 import { Tag } from "./tag.model";
 import { TagService } from "./tag.service";
-import { PaginationData } from "@src/interfaces/http.interface";
-import { Types } from "mongoose";
 
 @Controller("tag")
 export class TagController {
@@ -70,8 +70,8 @@ export class TagController {
 
     @Delete()
     //@UseGuards(JwtAuthGuard)
-    @HTTP.Success(HttpStatus.OK, "删除标签成功")
-    @HTTP.Error(HttpStatus.BAD_REQUEST, "删除标签失败")
+    @HTTP.Success(HttpStatus.OK, "批量删除标签成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "批量删除标签失败")
     public deleteTags(@Body() body): Promise<boolean> {
         return this.tagService.deleteMany(body);
     }

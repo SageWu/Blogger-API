@@ -1,0 +1,98 @@
+/**
+ * @file 文章目录服务
+ * @module modules/category/service
+ */
+
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "nestjs-typegoose";
+import { ModelType } from "typegoose";
+
+import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
+import { Category } from "./category.model";
+import { Types } from "mongoose";
+
+@Injectable()
+export class CategoryService {
+    constructor(
+        @InjectModel(Category) private categoryModel: ModelType<Category>
+    ) {}
+
+    //检测文章目录是否存在
+    private async isExist(category: Category): Promise<boolean> {
+        let found_category: Category = await this.categoryModel.findOne({ name: category.name, user_id: category.user_id }).exec();
+
+        if(found_category) {
+            return Promise.resolve(true);
+        }
+        else {
+            return Promise.resolve(false);
+        }
+    }
+
+    //获取文章目录
+    public async get(option: HttpRequestOption): Promise<PaginationData<Category[]>> {
+        let page: number = Number.parseInt(option.page);
+        let page_size: number = Number.parseInt(option.page_size);
+        let offset: number = (page - 1) * page_size;
+        let condition: any = {
+            user_id: option.user_id
+        };
+
+        let result: PaginationData<Category[]> = {};
+        result.total = await this.categoryModel.estimatedDocumentCount().exec();
+        result.data = await this.categoryModel.find(condition).skip(offset).limit(page_size).exec();
+
+        return Promise.resolve(result);
+    }
+
+    //创建文章目录
+    public async create(category: Category): Promise<Category> {
+        let is_exist: boolean = await this.isExist(category);
+        if(is_exist) {
+            return Promise.reject("文章目录已经存在");
+        }
+
+        return this.categoryModel.create(category).catch( //因数据不符合要求创建失败抛异常
+            (reason) => {
+                return Promise.reject(reason["message"]);
+            }
+        );
+    }
+
+    //修改文章目录
+    public update(category: Category): Promise<Category> {
+        return this.categoryModel.updateOne({_id: category._id}, category).exec().catch(
+            (reason) => {
+                return Promise.reject(reason["message"]); 
+            }
+        );
+    }
+
+    //删除文章目录
+    public delete(category_id: Types.ObjectId): Promise<boolean> {
+        return this.categoryModel.deleteOne({ _id: category_id }).exec().then(
+            (value) => {
+                if(value.n === 1) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        );
+    }
+
+    //批量删除
+    public deleteMany(category_ids: Types.ObjectId[]): Promise<boolean> {
+        return this.categoryModel.deleteMany({ _id: { $in: category_ids } }).exec().then(
+            (value) => {
+                if(value.n === category_ids.length) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        );
+    }
+}
