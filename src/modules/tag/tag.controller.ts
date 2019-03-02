@@ -30,6 +30,15 @@ export class TagController {
         return this.tagService.get(query);
     }
 
+    @Get("all")
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "获取所有标签成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "获取所有标签失败")
+    public getAllTags(@Req() request): Promise<Tag[]> {
+        let user_id: string = "5c6180ea67e9335c15af5118";//request.user;
+        return this.tagService.getAll(user_id);
+    }
+
     @Post()
     //@UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "添加标签成功")

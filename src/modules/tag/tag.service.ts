@@ -31,8 +31,8 @@ export class TagService {
 
     //获取标签
     public async get(option: HttpRequestOption): Promise<PaginationData<Tag[]>> {
-        let page: number = Number.parseInt(option.page);
-        let page_size: number = Number.parseInt(option.page_size);
+        let page: number = option.page? Number.parseInt(option.page): 1;
+        let page_size: number = option.page_size? Number.parseInt(option.page_size): 10;
         let offset: number = (page - 1) * page_size;
         let condition: any = {
             user_id: option.user_id
@@ -47,6 +47,11 @@ export class TagService {
         result.data = await this.tagModel.find(condition).skip(offset).limit(page_size).exec();
 
         return Promise.resolve(result);
+    }
+
+    //获取用户所有标签
+    public getAll(user_id: string): Promise<Tag[]> {
+        return this.tagModel.find({ user_id: user_id }).exec();
     }
 
     //创建标签
