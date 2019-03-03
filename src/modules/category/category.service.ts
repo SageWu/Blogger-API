@@ -31,8 +31,8 @@ export class CategoryService {
 
     //获取文章目录
     public async get(option: HttpRequestOption): Promise<PaginationData<Category[]>> {
-        let page: number = Number.parseInt(option.page);
-        let page_size: number = Number.parseInt(option.page_size);
+        let page: number = option.page? Number.parseInt(option.page): 1;
+        let page_size: number = option.page_size? Number.parseInt(option.page_size): 10;
         let offset: number = (page - 1) * page_size;
         let condition: any = {
             user_id: option.user_id
@@ -43,6 +43,11 @@ export class CategoryService {
         result.data = await this.categoryModel.find(condition).skip(offset).limit(page_size).exec();
 
         return Promise.resolve(result);
+    }
+
+    //获取所有文章目录
+    public getAll(user_id: string): Promise<Category[]> {
+        return this.categoryModel.find({ user_id: user_id }).exec();
     }
 
     //创建文章目录
@@ -61,7 +66,7 @@ export class CategoryService {
 
     //修改文章目录
     public update(category: Category): Promise<Category> {
-        return this.categoryModel.updateOne({_id: category._id}, category).exec().catch(
+        return this.categoryModel.updateOne({_id: category._id}, category).exec().catch(    //因数据不符合要求创建失败抛异常
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }

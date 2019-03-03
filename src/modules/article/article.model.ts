@@ -12,6 +12,8 @@ import { User } from "../user/user.model";
 import { Types } from "mongoose";
 
 export class Article extends Typegoose {
+    _id?: Types.ObjectId;
+
     @prop({
         required: true
     })
@@ -48,7 +50,7 @@ export class Article extends Typegoose {
     @prop({
         default: 0
     })
-    comments?: number;   //评论数量
+    comments_num?: number;   //评论数量
 
     @prop({
         default: Date.now
@@ -68,12 +70,13 @@ export class Article extends Typegoose {
 
     @arrayProp({
         itemsRef: Category,
-        required: true
+        default: []
     })
-    categories: Ref<Category>[]; //文章所属类别
+    categories?: Ref<Category>[]; //文章所属类别
 
     @arrayProp({
-        itemsRef: Tag
+        itemsRef: Tag,
+        default: []
     })
-    tags: Ref<Tag>[];    //文章包含标签
+    tags?: Ref<Tag>[];    //文章包含标签
 }

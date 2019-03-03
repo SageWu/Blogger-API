@@ -31,6 +31,15 @@ export class CategoryController {
         return this.categoryService.get(query);
     }
 
+    @Get("all")
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "获取所有文章目录成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "获取所有文章目录失败")
+    public getAllCategories(@Req() request): Promise<Category[]> {
+        let user_id: string = "5c6180ea67e9335c15af5118";//request.user;
+        return this.categoryService.getAll(user_id);
+    }
+
     @Post()
     // @UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "添加文章目录成功")
@@ -65,7 +74,7 @@ export class CategoryController {
     //@UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "删除文章目录成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "删除文章目录失败")
-    public deleteTag(@Param() param): Promise<boolean> {
+    public deleteCategory(@Param() param): Promise<boolean> {
         return this.categoryService.delete(param.id);
     }
 
@@ -73,7 +82,7 @@ export class CategoryController {
     //@UseGuards(JwtAuthGuard)
     @HTTP.Success(HttpStatus.OK, "批量删除文章目录成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "批量删除文章目录失败")
-    public deleteTags(@Body() body): Promise<boolean> {
+    public deleteCategories(@Body() body): Promise<boolean> {
         return this.categoryService.deleteMany(body);
     }
 }

@@ -23,7 +23,7 @@ import { CategoryModule } from './modules/category/category.module';
 		UserModule,
 		TagModule,
 		CategoryModule,
-		// ArticleModule
+		ArticleModule
 	],
 	controllers: [
 		AppController
