@@ -87,7 +87,7 @@ export class CategoryService {
         );
     }
 
-    //批量删除
+    //批量删除文章目录
     public deleteMany(category_ids: Types.ObjectId[]): Promise<boolean> {
         return this.categoryModel.deleteMany({ _id: { $in: category_ids } }).exec().then(
             (value) => {

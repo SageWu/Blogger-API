@@ -3,7 +3,7 @@
  * @module modules/article/controller
  */
 
-import { Controller, Get, UseGuards, HttpStatus, Query, Post, Req, Body, ReflectMetadata, Put } from "@nestjs/common";
+import { Controller, Get, UseGuards, HttpStatus, Query, Post, Req, Body, ReflectMetadata, Put, Delete, Param } from "@nestjs/common";
 import { Types } from "mongoose";
 
 import * as META from "@src/constants/meta.constant";
@@ -12,6 +12,7 @@ import { HTTP } from "@src/decorators/http.decorator";
 import { Article } from "./article.model";
 import { ArticleService } from "./article.service";
 import { PaginationData } from "@src/interfaces/http.interface";
+import { request } from "https";
 
 @Controller("article")
 export class ArticleController {
@@ -28,6 +29,14 @@ export class ArticleController {
         //todo 检查查询参数
 
         return this.articleService.get(query);
+    }
+
+    @Get("/:id")
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "获取文章成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "获取文章失败")
+    public getArticle(@Param() param): Promise<Article> {
+        return this.articleService.getOne(param.id);
     }
 
     @Post()
@@ -58,5 +67,29 @@ export class ArticleController {
                 return reason;
             }
         );
+    }
+
+    @Put("many")
+    // @UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "批量修改文章成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "批量修改文章失败")
+    public updateArticles(@Req() request, @Body() articles: Article[]): Promise<boolean> {
+        return this.articleService.updateMany(articles);
+    }
+
+    @Delete("/:id")
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "删除文章成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "删除文章失败")
+    public deleteArticle(@Param() param): Promise<boolean> {
+        return this.articleService.delete(param.id);
+    }
+
+    @Delete()
+    //@UseGuards(JwtAuthGuard)
+    @HTTP.Success(HttpStatus.OK, "批量删除文章成功")
+    @HTTP.Error(HttpStatus.BAD_REQUEST, "批量删除文章失败")
+    public deleteArticles(@Body() body): Promise<boolean> {
+        return this.articleService.deleteMany(body);
     }
 }
