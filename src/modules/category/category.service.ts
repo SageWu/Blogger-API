@@ -10,11 +10,13 @@ import { ModelType } from "typegoose";
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
 import { Category } from "./category.model";
 import { Types } from "mongoose";
+import { Article } from "../article/article.model";
 
 @Injectable()
 export class CategoryService {
     constructor(
-        @InjectModel(Category) private categoryModel: ModelType<Category>
+        @InjectModel(Category) private categoryModel: ModelType<Category>,
+        @InjectModel(Article) private articleModel: ModelType<Article>
     ) {}
 
     //检测文章目录是否存在
@@ -41,6 +43,17 @@ export class CategoryService {
         let result: PaginationData<Category[]> = {};
         result.total = await this.categoryModel.estimatedDocumentCount().exec();
         result.data = await this.categoryModel.find(condition).skip(offset).limit(page_size).exec();
+
+        let counts: { _id, num }[] = await this.articleModel.aggregate([
+            { $unwind: "$categories" },
+            { $group: { _id: "$categories", num: { $sum: 1 } } }
+        ]).exec();
+
+        result.data = JSON.parse(JSON.stringify(result.data));
+        result.data.forEach((value: Category) => {
+            let found = counts.find((count) => count._id.toString() == value._id.toString());
+            value.count = found? found.num: 0
+        });
 
         return Promise.resolve(result);
     }

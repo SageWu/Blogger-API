@@ -10,11 +10,13 @@ import { Types } from "mongoose";
 
 import { Tag } from "./tag.model";
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
+import { Article } from "dist/src/modules/article/article.model";
 
 @Injectable()
 export class TagService {
     constructor(
-        @InjectModel(Tag) private tagModel: ModelType<Tag>
+        @InjectModel(Tag) private tagModel: ModelType<Tag>,
+        @InjectModel(Article) private articleModel: ModelType<Article>
     ) {}
 
     //检测标签是否已经存在
@@ -45,6 +47,16 @@ export class TagService {
         let result: PaginationData<Tag[]> = {};
         result.total = await this.tagModel.estimatedDocumentCount().exec();
         result.data = await this.tagModel.find(condition).skip(offset).limit(page_size).exec();
+
+        let counts: { _id, num }[] = await this.articleModel.aggregate([
+            { $unwind: "$tags" },
+            { $group: { _id: "$tags", num: { $sum: 1 } } }
+        ]).exec();
+        result.data = JSON.parse(JSON.stringify(result.data));
+        result.data.forEach((value: Tag) => {
+            let found = counts.find((count) => count._id.toString() == value._id.toString());
+            value.count = found? found.num: 0
+        });
 
         return Promise.resolve(result);
     }

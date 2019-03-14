@@ -20,11 +20,6 @@ export class Category extends Typegoose {
     description?: string;       //描述
 
     @prop({
-        default: 0
-    })
-    count?: number;             //文章引用数
-
-    @prop({
         default: Date.now
     })
     create_at?: Date;           //创建时间
@@ -45,4 +40,6 @@ export class Category extends Typegoose {
         ref: User
     })
     user_id: Types.ObjectId;    //所属用户
+
+    count?: number;             //文章引用数
 }

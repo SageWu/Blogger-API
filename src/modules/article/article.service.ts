@@ -3,7 +3,6 @@ import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
 
 import { Article } from "./article.model";
-import { PublishState, Origin } from "./article.interface";
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
 import { Types } from "mongoose";
 
@@ -81,6 +80,7 @@ export class ArticleService {
         return this.articleModel.findOne({ _id: article_id })
             .populate("categories")
             .populate("tags")
+            .populate("user_id", "name")
             .exec();
     }
 
