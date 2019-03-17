@@ -4,6 +4,7 @@
  */
 
 import { Controller, Post, HttpStatus, Body, ReflectMetadata, Get, UseGuards, Req, Query } from "@nestjs/common";
+import { Types } from "mongoose";
 
 import * as META from "@src/constants/meta.constant"
 import { HTTP } from "@src/decorators/http.decorator";
@@ -35,9 +36,9 @@ export class UserController {
     @HTTP.Success(HttpStatus.OK, "获取用户成功")
     @HTTP.Error(HttpStatus.BAD_REQUEST, "获取用户失败")
     public getUser(@Req() request): Promise<User> {
-        return this.userService.get(request.user).catch(
+        return this.userService.get(Types.ObjectId(request.user)).catch(
             (reason: any) => {
-                ReflectMetadata(META.HTTP_IS_ERROR, true)(this.createUser);  //标记失败
+                ReflectMetadata(META.HTTP_IS_ERROR, true)(this.getUser);  //标记失败
 
                 return reason;
             }

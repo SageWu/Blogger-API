@@ -9,6 +9,7 @@ import { ModelType } from "typegoose";
 
 import { User } from "./user.model";
 import { AuthService } from "../auth/auth.service";
+import { Types } from "mongoose";
 
 @Injectable()
 export class UserService {
@@ -30,7 +31,7 @@ export class UserService {
     }
 
     //获取用户
-    public async get(user_id: string): Promise<User> {
+    public async get(user_id: Types.ObjectId): Promise<User> {
         let user: User = await this.userModel.findById(user_id).exec();
         
         if(user) {

@@ -6,10 +6,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
+import { Types } from "mongoose";
 
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
 import { Category } from "./category.model";
-import { Types } from "mongoose";
 import { Article } from "../article/article.model";
 
 @Injectable()
@@ -41,14 +41,14 @@ export class CategoryService {
         };
 
         let result: PaginationData<Category[]> = {};
-        result.total = await this.categoryModel.estimatedDocumentCount().exec();
+        result.total = await this.categoryModel.countDocuments(condition).exec();
         result.data = await this.categoryModel.find(condition).skip(offset).limit(page_size).exec();
 
         let counts: { _id, num }[] = await this.articleModel.aggregate([
+            { $match: condition },
             { $unwind: "$categories" },
             { $group: { _id: "$categories", num: { $sum: 1 } } }
         ]).exec();
-
         result.data = JSON.parse(JSON.stringify(result.data));
         result.data.forEach((value: Category) => {
             let found = counts.find((count) => count._id.toString() == value._id.toString());
@@ -59,7 +59,7 @@ export class CategoryService {
     }
 
     //获取所有文章目录
-    public getAll(user_id: string): Promise<Category[]> {
+    public getAll(user_id: Types.ObjectId): Promise<Category[]> {
         return this.categoryModel.find({ user_id: user_id }).exec();
     }
 
@@ -79,7 +79,7 @@ export class CategoryService {
 
     //修改文章目录
     public update(category: Category): Promise<Category> {
-        return this.categoryModel.updateOne({_id: category._id}, category).exec().catch(    //因数据不符合要求创建失败抛异常
+        return this.categoryModel.updateOne({_id: category._id, user_id: category.user_id}, category).exec().catch(    //因数据不符合要求创建失败抛异常
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }
@@ -87,8 +87,8 @@ export class CategoryService {
     }
 
     //删除文章目录
-    public delete(category_id: Types.ObjectId): Promise<boolean> {
-        return this.categoryModel.deleteOne({ _id: category_id }).exec().then(
+    public delete(user_id: Types.ObjectId, category_id: Types.ObjectId): Promise<boolean> {
+        return this.categoryModel.deleteOne({ _id: category_id, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === 1) {
                     return true;
@@ -101,8 +101,8 @@ export class CategoryService {
     }
 
     //批量删除文章目录
-    public deleteMany(category_ids: Types.ObjectId[]): Promise<boolean> {
-        return this.categoryModel.deleteMany({ _id: { $in: category_ids } }).exec().then(
+    public deleteMany(user_id: Types.ObjectId, category_ids: Types.ObjectId[]): Promise<boolean> {
+        return this.categoryModel.deleteMany({ _id: { $in: category_ids }, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === category_ids.length) {
                     return true;

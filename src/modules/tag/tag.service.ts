@@ -8,9 +8,9 @@ import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
 import { Types } from "mongoose";
 
-import { Tag } from "./tag.model";
 import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
-import { Article } from "dist/src/modules/article/article.model";
+import { Tag } from "./tag.model";
+import { Article } from "../article/article.model";
 
 @Injectable()
 export class TagService {
@@ -44,11 +44,12 @@ export class TagService {
             condition.name = RegExp(option.keyword);
         }
 
+        //计算文章引用数
         let result: PaginationData<Tag[]> = {};
-        result.total = await this.tagModel.estimatedDocumentCount().exec();
+        result.total = await this.tagModel.countDocuments(condition).exec();
         result.data = await this.tagModel.find(condition).skip(offset).limit(page_size).exec();
-
         let counts: { _id, num }[] = await this.articleModel.aggregate([
+            { $match: condition },
             { $unwind: "$tags" },
             { $group: { _id: "$tags", num: { $sum: 1 } } }
         ]).exec();
@@ -62,7 +63,7 @@ export class TagService {
     }
 
     //获取用户所有标签
-    public getAll(user_id: string): Promise<Tag[]> {
+    public getAll(user_id: Types.ObjectId): Promise<Tag[]> {
         return this.tagModel.find({ user_id: user_id }).exec();
     }
 
@@ -82,7 +83,7 @@ export class TagService {
 
     //修改标签
     public update(tag: Tag): Promise<Tag> {
-        return this.tagModel.updateOne({_id: tag._id}, tag).exec().catch(
+        return this.tagModel.updateOne({_id: tag._id, user_id: tag.user_id}, tag).exec().catch(
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }
@@ -90,8 +91,8 @@ export class TagService {
     }
 
     //删除标签
-    public delete(tag_id: Types.ObjectId): Promise<boolean> {
-        return this.tagModel.deleteOne({ _id: tag_id }).exec().then(
+    public delete(user_id: Types.ObjectId, tag_id: Types.ObjectId): Promise<boolean> {
+        return this.tagModel.deleteOne({ _id: tag_id, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === 1) {
                     return true;
@@ -104,8 +105,8 @@ export class TagService {
     }
 
     //批量删除
-    public deleteMany(tag_ids: Types.ObjectId[]): Promise<boolean> {
-        return this.tagModel.deleteMany({ _id: { $in: tag_ids } }).exec().then(
+    public deleteMany(user_id: Types.ObjectId, tag_ids: Types.ObjectId[]): Promise<boolean> {
+        return this.tagModel.deleteMany({ _id: { $in: tag_ids }, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === tag_ids.length) {
                     return true;

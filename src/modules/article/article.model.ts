@@ -4,12 +4,12 @@
  */
 
 import { Typegoose, prop, Ref, arrayProp } from "typegoose";
+import { Types } from "mongoose";
 
 import { PublishState, Origin } from "./article.interface";
 import { Category } from "../category/category.model";
 import { Tag } from "../tag/tag.model";
 import { User } from "../user/user.model";
-import { Types } from "mongoose";
 
 export class Article extends Typegoose {
     _id?: Types.ObjectId;

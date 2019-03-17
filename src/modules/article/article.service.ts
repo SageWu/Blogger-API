@@ -1,10 +1,16 @@
+/**
+ * @file 文章服务
+ * @module modules/article/service
+ */
+
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
-
-import { Article } from "./article.model";
-import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
 import { Types } from "mongoose";
+
+import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interface";
+import { Article } from "./article.model";
+import { PublishState, Origin, Sort } from "./article.interface";
 
 @Injectable()
 export class ArticleService {
@@ -29,15 +35,16 @@ export class ArticleService {
         let page: number = option.page? Number.parseInt(option.page): 1;
         let page_size: number = option.page_size? Number.parseInt(option.page_size): 10;
         let offset: number = (page - 1) * page_size;
-        let condition: any = {
-            user_id: option.user_id
-        };
+        let condition: any = {};
         let sort: any = {};
 
-        if(option.state && option.state !== "0") {      //文章状态
+        if(option.user_id) {
+            condition.user_id = option.user_id;
+        }
+        if(option.state && option.state !== PublishState.All.toString()) {      //文章状态
             condition.state = Number.parseInt(option.state);
         }
-        if(option.origin && option.origin !== "0") {    //文章来源
+        if(option.origin && option.origin !== Origin.All.toString()) {    //文章来源
             condition.origin = Number.parseInt(option.origin);
         }
         if(option.category !== "all") {                 //文章目录
@@ -51,21 +58,18 @@ export class ArticleService {
             condition.content = RegExp(option.keyword);
         }
 
-        if(option.sort === "0") {                       //排序
+        if(option.sort === Sort.Asc.toString()) {       //排序
             sort.create_at = 1;
         }
-        else if(option.sort === "1") {
+        else if(option.sort === Sort.Desc.toString()) {
             sort.create_at = -1;
         }
-        else {
+        else if(option.sort === Sort.Hot.toString()) {
             sort.views = -1;
         }
 
         let result: PaginationData<Article[]> = {};
-        if(option.state && option.state !== "0")
-            result.total = await this.articleModel.countDocuments({ state: Number.parseInt(option.state) }).exec();
-        else
-            result.total = await this.articleModel.estimatedDocumentCount().exec();
+        result.total = await this.articleModel.countDocuments(condition).exec();
         result.data = await this.articleModel.find(condition)
             .skip(offset)
             .limit(page_size)
@@ -76,12 +80,18 @@ export class ArticleService {
         return Promise.resolve(result);
     }
 
-    public getOne(article_id: string): Promise<Article> {
-        return this.articleModel.findOne({ _id: article_id })
+    public async getOne(user_id: Types.ObjectId, article_id: Types.ObjectId): Promise<Article> {
+        let article: Article = await this.articleModel.findOne({ _id: article_id })
             .populate("categories")
             .populate("tags")
             .populate("user_id", "name")
             .exec();
+        
+        if(article.user_id["_id"] !== user_id && article.state !== PublishState.Published) {
+            return Promise.reject("无权限");
+        }
+
+        return Promise.resolve(article);
     }
 
     //创建文章
@@ -100,7 +110,7 @@ export class ArticleService {
 
     //修改文章
     public update(article: Article): Promise<Article> {
-        return this.articleModel.updateOne({_id: article._id}, article).exec().catch(   //因数据不符合要求创建失败抛异常
+        return this.articleModel.updateOne({_id: article._id, user_id: article.user_id}, article).exec().catch(   //因数据不符合要求创建失败抛异常
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }
@@ -110,8 +120,10 @@ export class ArticleService {
     //批量修改文章
     public updateMany(articles: Article[]): Promise<boolean> {
         let ids: Types.ObjectId[] = articles.map((article: Article) => article._id);
+        let user_id: Types.ObjectId = articles[0].user_id;
+        let state: PublishState = articles[0].state;
 
-        return this.articleModel.updateMany({ _id: { $in: ids } }, { state: articles[0].state }).exec().then(
+        return this.articleModel.updateMany({ _id: { $in: ids }, user_id: user_id }, { state: state }).exec().then(
             (value) => {
                 if(value.n === articles.length) {
                     return true;
@@ -124,8 +136,8 @@ export class ArticleService {
     }
 
     //删除文章
-    public delete(article_id: Types.ObjectId): Promise<boolean> {
-        return this.articleModel.deleteOne({ _id: article_id }).exec().then(
+    public delete(user_id: Types.ObjectId, article_id: Types.ObjectId): Promise<boolean> {
+        return this.articleModel.deleteOne({ _id: article_id, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === 1) {
                     return true;
@@ -138,8 +150,8 @@ export class ArticleService {
     }
 
     //批量删除文章
-    public deleteMany(article_ids: Types.ObjectId[]): Promise<boolean> {
-        return this.articleModel.deleteMany({ _id: { $in: article_ids } }).exec().then(
+    public deleteMany(user_id: Types.ObjectId, article_ids: Types.ObjectId[]): Promise<boolean> {
+        return this.articleModel.deleteMany({ _id: { $in: article_ids }, user_id: user_id }).exec().then(
             (value) => {
                 if(value.n === article_ids.length) {
                     return true;

@@ -14,16 +14,20 @@ import { CorsMiddleware } from './middlewares/cors.middleware';
 import { ArticleModule } from './modules/article/article.module';
 import { TagModule } from './modules/tag/tag.module';
 import { CategoryModule } from './modules/category/category.module';
+import { LogModule } from './modules/log/log.module';
+import { JobModule } from './core/job/job.module';
 
 @Module({
 	imports: [
 		DatabaseModule,
 		HelperModule,
+		JobModule,
 		AuthModule,
 		UserModule,
 		TagModule,
 		CategoryModule,
-		ArticleModule
+		ArticleModule,
+		LogModule
 	],
 	controllers: [
 		AppController

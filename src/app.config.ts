@@ -38,8 +38,15 @@ export const CORS = {
     allowedMethods: [RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.HEAD, RequestMethod.PATCH]
 };
 
+//数据库
 export const MONGODB = {
     uri: "mongodb://127.0.0.1:27017/blogger",
     username: "blogger",
     password: "blogger"
 };
+
+//推荐系统配置
+export const RECOMMEND = {
+    hotDay: 10,
+    valuableDay: 30
+}

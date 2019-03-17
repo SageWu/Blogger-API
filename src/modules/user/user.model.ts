@@ -3,9 +3,12 @@
  * @module modules/user/entity
  */
 
-import { Typegoose, prop } from "typegoose";
+import { Typegoose, prop, arrayProp } from "typegoose";
+import { Types } from "mongoose";
 
 export class User extends Typegoose {
+    _id?: Types.ObjectId;
+
     @prop({
         required: true,
         unique: true
@@ -23,9 +26,7 @@ export class User extends Typegoose {
     })
     name: string;   //名称
 
-    @prop({
-        unique: true
-    })
+    @prop()
     email?: string;  //邮箱
 
     @prop()
@@ -33,6 +34,15 @@ export class User extends Typegoose {
 
     @prop()
     avatar?: string; //头像
+
+    @arrayProp({
+        default: [],
+        items: String
+    })
+    preferences?: string[];  //喜好关键字列表
+
+    @prop()
+    last_login?: Date;  //上次登录时间
 
     @prop({
         default: Date.now
