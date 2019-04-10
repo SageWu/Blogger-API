@@ -16,6 +16,8 @@ import { TagModule } from './modules/tag/tag.module';
 import { CategoryModule } from './modules/category/category.module';
 import { LogModule } from './modules/log/log.module';
 import { JobModule } from './core/job/job.module';
+import { RecommendModule } from './modules/recommend/recommend.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
 	imports: [
@@ -27,7 +29,9 @@ import { JobModule } from './core/job/job.module';
 		TagModule,
 		CategoryModule,
 		ArticleModule,
-		LogModule
+		CommentModule,
+		LogModule,
+		RecommendModule
 	],
 	controllers: [
 		AppController

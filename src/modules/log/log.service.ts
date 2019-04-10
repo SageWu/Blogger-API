@@ -8,11 +8,13 @@ import { Log } from "./log.model";
 import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
 import { Types } from "mongoose";
+import { Article } from "../article/article.model";
 
 @Injectable()
 export class LogService {
     constructor(
-        @InjectModel(Log) private logModel: ModelType<Log>
+        @InjectModel(Log) private logModel: ModelType<Log>,
+        @InjectModel(Article) private articleModel: ModelType<Article>
     ) {}
 
     //检测是否存在
@@ -39,7 +41,15 @@ export class LogService {
             return Promise.reject("记录已存在");
         }
         
-        return this.logModel.create(log).catch( //因数据不符合条件抛异常
+        return this.logModel.create(log)
+        .then(
+            async (value) => {
+                await this.articleModel.updateOne({ _id: log.article_id }, { $inc: { views: 1 } }).exec();
+
+                return value;
+            }
+        )
+        .catch( //因数据不符合条件抛异常
             (reason) => {
                 return Promise.reject(reason["message"]); 
             }
@@ -51,7 +61,7 @@ export class LogService {
         let is_exist: boolean = await this.isExist(log);
 
         if(is_exist) {
-            let count: number = log.count? log.count: 0;
+            let count: number = log.count? 1: 0;
             let duration: number = log.duration? log.duration: 0;
             let doc: any = {
                 $inc: {
@@ -64,7 +74,17 @@ export class LogService {
                 doc.preference_degree = log.preference_degree;
             }
             
-            return this.logModel.updateOne({user_id: log.user_id, article_id: log.article_id}, doc).exec().catch(   //数据不符合要求
+            return this.logModel.updateOne({user_id: log.user_id, article_id: log.article_id}, doc).exec()
+            .then(
+                async (value) => {
+                    if(log.preference_degree === 2) {
+                        await this.articleModel.updateOne({ _id: log.article_id }, { $inc: { likes: 1 } }).exec();
+                    }
+
+                    return value;
+                }
+            )
+            .catch(   //数据不符合要求
                 (reason: any) => {
                     return Promise.reject(reason["message"]); 
                 }

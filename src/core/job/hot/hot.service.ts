@@ -13,49 +13,25 @@ import { HttpRequestOption, PaginationData } from "@src/interfaces/http.interfac
 import { Article } from "@src/modules/article/article.model";
 import { RECOMMEND } from "@src/app.config";
 import { Hot } from "./hot.model";
+import { beforeDay } from "../kit";
 
 @Injectable()
 export class HotService {
-    public before_day: number;              //热点文章有效时间
-    public days: number[];                  //月份天数
+    private before_day: number;              //热点文章有效时间
 
     constructor(
         @InjectModel(Log) private logModel: ModelType<Log>,
         @InjectModel(Hot) private hotModel: ModelType<Hot>
     ) {
         this.before_day = RECOMMEND.hotDay;
-        this.days = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     }
 
-    //推荐热门文章
+    /**
+     * 推荐热门文章
+     */
     public async recommend(): Promise<void> {
         let logs: Log[];
-
-        let date: Date = new Date();
-        let day: number = date.getDate();
-        if(day > this.before_day) {
-            day -= this.before_day;
-            date.setDate(day);
-        }
-        else {  //不够减
-            day = this.before_day - day;    //还需减多少天
-            let month: number = date.getMonth() - 1;
-            let year: number = date.getFullYear();
-            if(month < 0) {
-                month = 12;
-                year -= 1;
-            }
-            
-            if(month === 1) {   //二月则需判断是否闰年
-                if((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0)
-                    day = this.days[month] - day;
-                else
-                    day = this.days[month] - 1 - day;
-            }
-            else {
-                day = this.days[month] - day;
-            }
-        }
+        let date: Date = beforeDay(this.before_day);
 
         logs = await this.logModel.aggregate([
             { $match: { update_at: { $gte: date } } },
@@ -72,7 +48,7 @@ export class HotService {
             async (log: Log) => {
                 let result: any = await this.hotModel.updateOne({ article_id: Types.ObjectId(log._id) }, { update_at: Date.now() }).exec();
                 if(result.n === 0) {
-                    this.hotModel.create({ article_id: Types.ObjectId(log._id) });
+                    await this.hotModel.create({ article_id: Types.ObjectId(log._id) });
                 }
             }
         );
@@ -80,7 +56,10 @@ export class HotService {
         console.info("hot recommend " + logs.length + " items");
     }
 
-    //判断是否为热门文章
+    /**
+     * 判断文章是否为热点文章
+     * @param article_id 文章的ObjectId
+     */
     public async isExist(article_id: Types.ObjectId): Promise<boolean> {
         let hot: Hot = await this.hotModel.findOne({ article_id: article_id }).exec();
 
@@ -92,7 +71,10 @@ export class HotService {
         }
     }
 
-    //获取热门文章
+    /**
+     * 获取热点文章
+     * @param option 分页参数
+     */
     public async get(option: HttpRequestOption): Promise<PaginationData<Article[]>> {
         let page: number = option.page? Number.parseInt(option.page): 1;
         let page_size: number = option.page_size? Number.parseInt(option.page_size): 10;
