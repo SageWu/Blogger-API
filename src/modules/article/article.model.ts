@@ -11,6 +11,14 @@ import { Category } from "../category/category.model";
 import { Tag } from "../tag/tag.model";
 import { User } from "../user/user.model";
 
+/**
+ * 关键字接口
+ */
+export class Keyworld {
+    public keyworld: string;
+    public score: number;
+}
+
 export class Article extends Typegoose {
     _id?: Types.ObjectId;
 
@@ -23,6 +31,11 @@ export class Article extends Typegoose {
         required: true
     })
     content: string;    //内容
+
+    @arrayProp({
+        items: Keyworld
+    })
+    keyworlds?: Keyworld[];
 
     @prop()
     thumb?: string;  //缩略图

@@ -7,19 +7,25 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "nestjs-typegoose";
 import { ModelType } from "typegoose";
 import { Types } from "mongoose";
-var recommender = require("recommender");
+let recommend = require("../recommend");
 
 import { RECOMMEND } from "@src/app.config";
 import { Log } from "@src/modules/log/log.model";
 import { Recommend } from "@src/modules/recommend/recommend.model";
 import { beforeDay } from "../kit";
+import { Subject } from "rxjs";
 
 @Injectable()
 export class CollaborativeFilterService {
+    private $user_done: Subject<boolean>;
+    private user_count: number;
+
     constructor(
         @InjectModel(Log) private logModel: ModelType<Log>,
         @InjectModel(Recommend) private recommendModel: ModelType<Recommend>
-    ) {}
+    ) {
+        this.$user_done = new Subject<boolean>();
+    }
 
     /**
      * 基于协同过滤推荐文章
@@ -27,7 +33,6 @@ export class CollaborativeFilterService {
     public async recommend(): Promise<void> {
         let frame: Frame<number> = new Frame<number>(0);
         let date: Date = beforeDay(RECOMMEND.valuableDay);
-        let users: Types.ObjectId[];
         
         let logs: Log[] = await this.logModel.find({update_at: { $gte: date }}).exec();
         logs.forEach(
@@ -37,27 +42,42 @@ export class CollaborativeFilterService {
             }
         );
 
+        // console.info(frame.value);
+
         let count: number = 0;
         let rows: IterableIterator<[any, number]> = frame.rows.entries();
-        for(let row of rows) {
-            recommender.getTopCFRecommendations(frame.value, row[1], (recoms: { itemId, rating }[]) => {
-                recoms.forEach(
-                    async (recom) => {
-                        let user_id: Types.ObjectId = Types.ObjectId(row[0]);
-                        let article_id: Types.ObjectId = Types.ObjectId(frame.columns_reverse.get(recom.itemId));
-                        let recommend = { user_id: user_id, article_id: article_id, score: recom.rating };
+        this.user_count = 0;
+        this.$user_done.subscribe((value: boolean) => {
+            this.user_count++;
 
-                        let found: Recommend = await this.recommendModel.findOne(recommend).exec();
-                        if(!found) {
-                            await this.recommendModel.create({ user_id: user_id, article_id: article_id });
-                            count++;
-                        }
+            if(this.user_count === frame.rows.size) {
+                console.info(`collaborative filter recommend ${count} items for ${frame.rows.size} user, average: ${ Math.floor(count / frame.rows.size)}`);
+            }
+        });
+
+        for(let row of rows) {
+            recommend.getCFRecommendations(frame.value, row[1], {}, async (recoms: { item_id, score }[]) => {
+                // console.info(recoms);
+                
+                for(let recom of recoms) {
+                    if(recom.score <= 1) {
+                        continue;
                     }
-                );
+
+                    let user_id: Types.ObjectId = Types.ObjectId(row[0]);
+                    let article_id: Types.ObjectId = Types.ObjectId(frame.columns_reverse.get(recom.item_id));
+                    let recommend = { user_id: user_id, article_id: article_id, score: recom.score };
+
+                    let found: Recommend = await this.recommendModel.findOne({ user_id: user_id, article_id: article_id }).exec();
+                    if(!found) {
+                        await this.recommendModel.create(recommend);
+                        count++;
+                    }
+                }
+
+                this.$user_done.next(true);
             });
         }
-
-        console.info(`collaborative filter recommend ${count} items for ${frame.rows.size} user, average: ${ Math.floor(count / frame.rows.size)}`);
     }
 
     /**
@@ -65,7 +85,7 @@ export class CollaborativeFilterService {
      * @param value 输入值
      */
     private getScore(value: number): number {
-        return (1 - Math.exp(-value)) * 100;
+        return Math.round((1 - Math.exp(-value)) * 100);
     }
 }
 
@@ -99,7 +119,9 @@ export class Frame<T> {
             row_index = this._rows.size;
             this._rows.set(row, row_index);
             this._matrix.push(new Array(this._columns.size));
-            this._matrix[row_index].forEach((value: T) => value = this._default_value);
+            for(let i = 0; i < this._matrix[row_index].length; i++) {
+                this._matrix[row_index][i] = this._default_value;
+            }
         }
         let column_index: number = this._columns.get(column);
         if(column_index === undefined) {
